@@ -82,6 +82,10 @@ body{
   height:42px;
   display:flex;
   align-items:center;
+
+  transition:
+    transform .9s ease,
+    order .9s ease;
 }
 
 .rank{
@@ -109,10 +113,13 @@ body{
   top:0;
   height:100%;
   border-radius:999px;
-  transition:
-    width .85s ease,
-    transform .85s ease;
+
+  width:0%;
+
   opacity:.92;
+
+  transition:
+    width .9s cubic-bezier(.22,1,.36,1);
 }
 
 .score{
@@ -121,21 +128,6 @@ body{
   font-size:28px;
   color:#6d5b4e;
   padding-left:18px;
-}
-
-.fade{
-  animation:fade .55s ease;
-}
-
-@keyframes fade{
-  from{
-    opacity:0;
-    transform:translateY(10px);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0);
-  }
 }
 
 </style>
@@ -147,7 +139,9 @@ body{
 
 <div id="wrap">
 
-  <div class="title">わんも〜推し犬総選挙</div>
+  <div class="title">
+    わんも〜推し犬総選挙
+  </div>
 
   <div class="sub">
     RANKING TRANSITION
@@ -236,6 +230,39 @@ const scores = {};
 const chart = document.getElementById("chart");
 const dateEl = document.getElementById("date");
 
+const dogElements = {};
+
+function createRow(name){
+
+  const row = document.createElement("div");
+
+  row.className = "row";
+
+  row.innerHTML = `
+
+    <div class="rank">0</div>
+
+    <div class="name">
+      ${name}
+    </div>
+
+    <div class="bar-area">
+      <div class="bar"></div>
+    </div>
+
+    <div class="score">0</div>
+
+  `;
+
+  row.querySelector(".bar").style.background =
+    colors[name] || "#c8b9aa";
+
+  dogElements[name] = row;
+
+  chart.appendChild(row);
+
+}
+
 function render(){
 
   const sorted = Object.entries(scores)
@@ -244,43 +271,26 @@ function render(){
 
   const max = sorted[0]?.[1] || 1;
 
-  chart.innerHTML = "";
-
   sorted.forEach(([name,score],index)=>{
 
-    const row = document.createElement("div");
-    row.className = "row fade";
+    if(!dogElements[name]){
+      createRow(name);
+    }
+
+    const row = dogElements[name];
+
+    row.style.order = index;
 
     const width = (score / max) * 100;
 
-    row.innerHTML = `
+    row.querySelector(".rank").textContent =
+      index + 1;
 
-      <div class="rank">
-        ${index + 1}
-      </div>
+    row.querySelector(".score").textContent =
+      score.toLocaleString();
 
-      <div class="name">
-        ${name}
-      </div>
-
-      <div class="bar-area">
-
-        <div class="bar"
-          style="
-            width:${width}%;
-            background:${colors[name] || '#c8b9aa'};
-          ">
-        </div>
-
-      </div>
-
-      <div class="score">
-        ${score.toLocaleString()}
-      </div>
-
-    `;
-
-    chart.appendChild(row);
+    row.querySelector(".bar").style.width =
+      width + "%";
 
   });
 
@@ -290,7 +300,9 @@ let i = 0;
 
 function next(){
 
-  if(i >= rawData.length) return;
+  if(i >= rawData.length){
+    return;
+  }
 
   const [date,name,vote] = rawData[i];
 
