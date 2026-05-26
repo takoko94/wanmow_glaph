@@ -65,18 +65,6 @@ body{
   background:rgba(120,100,80,.16);
 }
 
-#log{
-  position:absolute;
-  top:64px;
-  right:78px;
-
-  font-size:24px;
-  color:#8f7c6d;
-
-  max-width:500px;
-  text-align:right;
-}
-
 #chart{
   position:absolute;
   left:78px;
@@ -96,8 +84,8 @@ body{
   align-items:center;
 
   transition:
-    transform .75s ease,
-    order .75s ease;
+    transform .25s linear,
+    order .25s linear;
 }
 
 .rank{
@@ -136,7 +124,7 @@ body{
   opacity:.92;
 
   transition:
-    width .6s cubic-bezier(.22,1,.36,1);
+    width .08s linear;
 }
 
 .score{
@@ -174,11 +162,13 @@ body{
 
   <div class="line"></div>
 
-  <div id="log">
-    データ読み込み中...
-  </div>
+  <div id="chart">
 
-  <div id="chart"></div>
+    <div class="loading">
+      データ読み込み中...
+    </div>
+
+  </div>
 
 </div>
 
@@ -190,11 +180,10 @@ const API_URL =
 const chart =
 document.getElementById("chart");
 
-const log =
-document.getElementById("log");
-
 const scores = {};
 const dogElements = {};
+
+let rawData = [];
 
 const colors = {
 
@@ -206,7 +195,10 @@ const colors = {
   "シュナウザー":"#b6a7d8",
   "チワワ":"#dfb0a5",
   "プードル":"#f2c6e8",
-  "キャバリア":"#d7b59d"
+  "キャバリア":"#d7b59d",
+  "ビーグル":"#c9d58f",
+  "コーギー":"#f0bb72",
+  "サモエド":"#dce8f2"
 
 };
 
@@ -316,17 +308,11 @@ function render(){
 }
 
 let current = 0;
-let rawData = [];
 
 function next(){
 
   if(current >= rawData.length){
-
-    log.textContent =
-      "FINISH";
-
     return;
-
   }
 
   const item =
@@ -346,12 +332,9 @@ function next(){
 
   render();
 
-  log.textContent =
-    `${item.user} → ${dog} +${votes}`;
-
   current++;
 
-  setTimeout(next, 420);
+  setTimeout(next, 25);
 
 }
 
@@ -367,6 +350,8 @@ async function loadData(){
     rawData =
       await res.json();
 
+    chart.innerHTML = "";
+
     next();
 
   }catch(err){
@@ -374,9 +359,11 @@ async function loadData(){
     console.error(err);
 
     chart.innerHTML = `
+
       <div class="loading">
         データ取得失敗
       </div>
+
     `;
 
   }
