@@ -49,7 +49,6 @@ body{
 .title{
   font-size:50px;
   color:#6d5b4e;
-  letter-spacing:2px;
 }
 
 .sub{
@@ -66,13 +65,16 @@ body{
   background:rgba(120,100,80,.16);
 }
 
-.date{
+#log{
   position:absolute;
-  right:78px;
   top:64px;
+  right:78px;
 
   font-size:24px;
   color:#8f7c6d;
+
+  max-width:500px;
+  text-align:right;
 }
 
 #chart{
@@ -134,7 +136,7 @@ body{
   opacity:.92;
 
   transition:
-    width .65s cubic-bezier(.22,1,.36,1);
+    width .6s cubic-bezier(.22,1,.36,1);
 }
 
 .score{
@@ -172,17 +174,11 @@ body{
 
   <div class="line"></div>
 
-  <div class="date" id="date">
-    LOADING...
+  <div id="log">
+    データ読み込み中...
   </div>
 
-  <div id="chart">
-
-    <div class="loading">
-      データ読み込み中...
-    </div>
-
-  </div>
+  <div id="chart"></div>
 
 </div>
 
@@ -194,8 +190,11 @@ const API_URL =
 const chart =
 document.getElementById("chart");
 
-const dateEl =
-document.getElementById("date");
+const log =
+document.getElementById("log");
+
+const scores = {};
+const dogElements = {};
 
 const colors = {
 
@@ -207,10 +206,7 @@ const colors = {
   "シュナウザー":"#b6a7d8",
   "チワワ":"#dfb0a5",
   "プードル":"#f2c6e8",
-  "キャバリア":"#d7b59d",
-  "ビーグル":"#c9d58f",
-  "コーギー":"#f0bb72",
-  "サモエド":"#dce8f2"
+  "キャバリア":"#d7b59d"
 
 };
 
@@ -226,15 +222,13 @@ function getColor(name){
     "#f2c4c4",
     "#d9d0b4",
     "#b6d7c9",
-    "#d8c1e8",
-    "#e8d0b6",
-    "#c4d9f2"
+    "#d8c1e8"
 
   ];
 
   let hash = 0;
 
-  for(let i = 0; i < name.length; i++){
+  for(let i=0;i<name.length;i++){
     hash += name.charCodeAt(i);
   }
 
@@ -243,11 +237,6 @@ function getColor(name){
   ];
 
 }
-
-const scores = {};
-const dogElements = {};
-
-let rawData = [];
 
 function createRow(name){
 
@@ -316,7 +305,7 @@ function render(){
         score.toLocaleString();
 
     const width =
-      (score / max) * 100;
+      (score/max)*100;
 
     row.querySelector(".bar")
       .style.width =
@@ -326,13 +315,14 @@ function render(){
 
 }
 
-let currentIndex = 0;
+let current = 0;
+let rawData = [];
 
 function next(){
 
-  if(currentIndex >= rawData.length){
+  if(current >= rawData.length){
 
-    dateEl.textContent =
+    log.textContent =
       "FINISH";
 
     return;
@@ -340,7 +330,7 @@ function next(){
   }
 
   const item =
-    rawData[currentIndex];
+    rawData[current];
 
   const dog =
     item.dog;
@@ -356,10 +346,10 @@ function next(){
 
   render();
 
-  dateEl.textContent =
-    item.date || "";
+  log.textContent =
+    `${item.user} → ${dog} +${votes}`;
 
-  currentIndex++;
+  current++;
 
   setTimeout(next, 420);
 
@@ -377,8 +367,6 @@ async function loadData(){
     rawData =
       await res.json();
 
-    chart.innerHTML = "";
-
     next();
 
   }catch(err){
@@ -386,11 +374,9 @@ async function loadData(){
     console.error(err);
 
     chart.innerHTML = `
-
       <div class="loading">
         データ取得失敗
       </div>
-
     `;
 
   }
