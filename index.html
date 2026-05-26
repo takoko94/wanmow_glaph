@@ -276,7 +276,18 @@ function render(){
   const sorted =
     Object.entries(scores)
 
-    .sort((a,b)=>b[1]-a[1])
+    .sort((a,b)=>{
+
+      if(b[1] !== a[1]){
+        return b[1] - a[1];
+      }
+
+      return a[0].localeCompare(
+        b[0],
+        "ja"
+      );
+
+    })
 
     .slice(0,19);
 
@@ -291,6 +302,8 @@ function render(){
 
     const row =
       dogElements[name];
+
+    row.style.display = "flex";
 
     row.style.order = index;
 
@@ -308,6 +321,16 @@ function render(){
     row.querySelector(".bar")
       .style.width =
         width + "%";
+
+  });
+
+  Object.keys(dogElements).forEach(name => {
+
+    const isVisible =
+      sorted.some(v => v[0] === name);
+
+    dogElements[name].style.display =
+      isVisible ? "flex" : "none";
 
   });
 
