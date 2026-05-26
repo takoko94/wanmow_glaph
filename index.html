@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>わんも〜推し犬総選挙 推移</title>
+
+<style>
+
+@font-face{
+  font-family:'PandaBakery';
+  src:url('pandabakery.ttf');
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  width:1280px;
+  height:720px;
+  overflow:hidden;
+  background:#efd3a1;
+  font-family:'PandaBakery',sans-serif;
+}
+
+#bg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+#wrap{
+  position:absolute;
+  inset:0;
+  padding:70px 90px;
+}
+
+.title{
+  font-size:46px;
+  color:#6d5b4e;
+  margin-bottom:18px;
+  letter-spacing:2px;
+}
+
+.sub{
+  font-size:18px;
+  color:#9b8c7e;
+  margin-bottom:34px;
+  letter-spacing:3px;
+}
+
+.line{
+  width:100%;
+  height:1px;
+  background:rgba(120,100,80,.16);
+  margin-bottom:38px;
+}
+
+.date{
+  position:absolute;
+  right:90px;
+  top:76px;
+  font-size:24px;
+  color:#8f7c6d;
+  letter-spacing:2px;
+}
+
+#chart{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.row{
+  position:relative;
+  height:42px;
+  display:flex;
+  align-items:center;
+}
+
+.rank{
+  width:60px;
+  font-size:28px;
+  color:#6d5b4e;
+}
+
+.name{
+  width:280px;
+  font-size:28px;
+  color:#6d5b4e;
+  white-space:nowrap;
+}
+
+.bar-area{
+  flex:1;
+  height:28px;
+  position:relative;
+}
+
+.bar{
+  position:absolute;
+  left:0;
+  top:0;
+  height:100%;
+  border-radius:999px;
+  transition:
+    width .85s ease,
+    transform .85s ease;
+  opacity:.92;
+}
+
+.score{
+  width:150px;
+  text-align:right;
+  font-size:28px;
+  color:#6d5b4e;
+  padding-left:18px;
+}
+
+.fade{
+  animation:fade .55s ease;
+}
+
+@keyframes fade{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<img src="haikei.png" id="bg">
+
+<div id="wrap">
+
+  <div class="title">わんも〜推し犬総選挙</div>
+
+  <div class="sub">
+    RANKING TRANSITION
+  </div>
+
+  <div class="line"></div>
+
+  <div class="date" id="date">
+    5/10
+  </div>
+
+  <div id="chart"></div>
+
+</div>
+
+<script>
+
+const rawData = [
+
+["5/10","チワワ",30],
+["5/10","ポメラニアン",3],
+["5/10","ハスキー",5],
+["5/10","柴犬",3],
+["5/10","パグ",34],
+["5/10","パグ",100],
+["5/10","パグ",100],
+["5/10","ダックスフンド",50],
+
+["5/13","パグ",160],
+["5/13","シュナウザー",20],
+["5/13","柴犬",10],
+
+["5/15","柴犬",30],
+["5/15","ダックスフンド",100],
+["5/15","ダックスフンド",75],
+["5/15","ハスキー",6],
+
+["5/20","ハスキー",50],
+["5/20","ポメラニアン",400],
+["5/20","シュナウザー",100],
+["5/20","ハスキー",100],
+["5/20","マルトイプー",300],
+
+["5/21","ハスキー",200],
+["5/21","チワワ",200],
+["5/21","チワワ",300],
+
+["5/22","ハスキー",8],
+["5/22","プードル",8],
+
+["5/23","シュナウザー",500],
+["5/23","パグ",1000],
+
+["5/24","ハスキー",1000],
+["5/24","ポメラニアン",300],
+["5/24","ポメラニアン",300],
+["5/24","ポメラニアン",1000],
+["5/24","プードル",1200],
+["5/24","ダックスフンド",500],
+["5/24","ハスキー",500],
+["5/24","ポメラニアン",1334],
+["5/24","ハスキー",500],
+["5/24","ハスキー",500],
+["5/24","ポメラニアン",300],
+["5/24","ポメラニアン",300],
+["5/24","ハスキー",500]
+
+];
+
+const colors = {
+
+  "ハスキー":"#94b7d4",
+  "ポメラニアン":"#efc768",
+  "パグ":"#efacbd",
+  "ダックスフンド":"#b78662",
+  "柴犬":"#d9906e",
+  "シュナウザー":"#b6a7d8",
+  "チワワ":"#dfb0a5",
+  "プードル":"#f2c6e8",
+  "マルトイプー":"#d8c0a7"
+
+};
+
+const scores = {};
+
+const chart = document.getElementById("chart");
+const dateEl = document.getElementById("date");
+
+function render(){
+
+  const sorted = Object.entries(scores)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,10);
+
+  const max = sorted[0]?.[1] || 1;
+
+  chart.innerHTML = "";
+
+  sorted.forEach(([name,score],index)=>{
+
+    const row = document.createElement("div");
+    row.className = "row fade";
+
+    const width = (score / max) * 100;
+
+    row.innerHTML = `
+
+      <div class="rank">
+        ${index + 1}
+      </div>
+
+      <div class="name">
+        ${name}
+      </div>
+
+      <div class="bar-area">
+
+        <div class="bar"
+          style="
+            width:${width}%;
+            background:${colors[name] || '#c8b9aa'};
+          ">
+        </div>
+
+      </div>
+
+      <div class="score">
+        ${score.toLocaleString()}
+      </div>
+
+    `;
+
+    chart.appendChild(row);
+
+  });
+
+}
+
+let i = 0;
+
+function next(){
+
+  if(i >= rawData.length) return;
+
+  const [date,name,vote] = rawData[i];
+
+  dateEl.textContent = date;
+
+  if(!scores[name]){
+    scores[name] = 0;
+  }
+
+  scores[name] += vote;
+
+  render();
+
+  i++;
+
+  setTimeout(next, 900);
+
+}
+
+render();
+
+setTimeout(next,1000);
+
+</script>
+
+</body>
+</html>
