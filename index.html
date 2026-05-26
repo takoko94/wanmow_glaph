@@ -94,8 +94,8 @@ body{
   align-items:center;
 
   transition:
-    transform .8s ease,
-    order .8s ease;
+    transform .75s ease,
+    order .75s ease;
 }
 
 .rank{
@@ -331,14 +331,19 @@ let currentIndex = 0;
 function next(){
 
   if(currentIndex >= rawData.length){
+
+    dateEl.textContent =
+      "FINISH";
+
     return;
+
   }
 
   const item =
     rawData[currentIndex];
 
   const dog =
-    item.name;
+    item.dog;
 
   const votes =
     Number(item.votes || 0);
@@ -352,11 +357,7 @@ function next(){
   render();
 
   dateEl.textContent =
-    item.user +
-    " → " +
-    dog +
-    " +" +
-    votes;
+    item.date || "";
 
   currentIndex++;
 
@@ -373,22 +374,8 @@ async function loadData(){
         API_URL + "?t=" + Date.now()
       );
 
-    const ranking =
+    rawData =
       await res.json();
-
-    rawData = [];
-
-    ranking.forEach(dog => {
-
-      rawData.push({
-
-        user:"",
-        name:dog.name,
-        votes:Number(dog.votes)
-
-      });
-
-    });
 
     chart.innerHTML = "";
 
