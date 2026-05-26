@@ -84,10 +84,6 @@ body{
 
   display:flex;
   align-items:center;
-
-  transition:
-    transform .28s ease,
-    order .28s ease;
 }
 
 .rank{
@@ -182,6 +178,7 @@ document.getElementById("chart");
 
 const scores = {};
 const dogElements = {};
+const dogOrder = [];
 
 let rawData = [];
 
@@ -270,39 +267,30 @@ function createRow(name){
 
 function render(){
 
-  const sorted =
-    Object.entries(scores)
-
-    .sort((a,b)=>{
-
-      if(b[1] !== a[1]){
-        return b[1] - a[1];
-      }
-
-      return a[0].localeCompare(
-        b[0],
-        "ja"
-      );
-
-    })
-
-    .slice(0,19);
+  const visibleDogs =
+    dogOrder.slice(0,19);
 
   const max =
-    sorted[0]?.[1] || 1;
+    Math.max(
+      ...visibleDogs.map(
+        name => scores[name] || 0
+      ),
+      1
+    );
 
-  sorted.forEach(([name,score],index)=>{
+  visibleDogs.forEach((name,index)=>{
 
     if(!dogElements[name]){
       createRow(name);
     }
 
+    const score =
+      scores[name] || 0;
+
     const row =
       dogElements[name];
 
     row.style.display = "flex";
-
-    row.style.order = index;
 
     row.querySelector(".rank")
       .textContent =
@@ -326,25 +314,25 @@ function render(){
     const diff =
       score - prev;
 
-    let duration = 0.18;
+    let duration = 0.28;
 
     if(diff >= 1000){
-      duration = 2.8;
+      duration = 3.8;
     }
     else if(diff >= 500){
-      duration = 1.8;
+      duration = 2.3;
     }
     else if(diff >= 250){
-      duration = 1.2;
+      duration = 1.5;
     }
     else if(diff >= 100){
-      duration = 0.85;
+      duration = 1.0;
     }
     else if(diff >= 50){
-      duration = 0.55;
+      duration = 0.7;
     }
     else if(diff >= 20){
-      duration = 0.35;
+      duration = 0.45;
     }
 
     bar.style.transition =
@@ -360,7 +348,7 @@ function render(){
   Object.keys(dogElements).forEach(name => {
 
     const isVisible =
-      sorted.some(v => v[0] === name);
+      visibleDogs.includes(name);
 
     dogElements[name].style.display =
       isVisible ? "flex" : "none";
@@ -387,7 +375,11 @@ function next(){
     Number(item.votes || 0);
 
   if(!scores[dog]){
+
     scores[dog] = 0;
+
+    dogOrder.push(dog);
+
   }
 
   scores[dog] += votes;
@@ -396,7 +388,7 @@ function next(){
 
   current++;
 
-  setTimeout(next, 55);
+  setTimeout(next, 90);
 
 }
 
