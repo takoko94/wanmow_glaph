@@ -43,7 +43,7 @@ body{
 #wrap{
   position:absolute;
   inset:0;
-  padding:40px 60px;
+  padding:52px 60px;
 }
 
 .title{
@@ -69,7 +69,7 @@ body{
 #chart{
   position:absolute;
   left:60px;
-  top:118px;
+  top:145px;
 
   width:1160px;
 
@@ -79,8 +79,6 @@ body{
   gap:4px;
 }
 
-/* 固定順位行 */
-
 .row{
   height:24px;
 
@@ -88,16 +86,12 @@ body{
   align-items:center;
 }
 
-/* 順位番号 */
-
 .rank{
   width:40px;
 
   font-size:17px;
   color:#6d5b4e;
 }
-
-/* 犬種 */
 
 .name{
   width:240px;
@@ -109,8 +103,6 @@ body{
   overflow:hidden;
   text-overflow:ellipsis;
 }
-
-/* バー */
 
 .bar-area{
   flex:1;
@@ -130,8 +122,6 @@ body{
 
   opacity:.92;
 }
-
-/* 票数 */
 
 .score{
   width:110px;
@@ -238,9 +228,7 @@ function getColor(name){
 
 }
 
-/* =========================
-固定順位行生成
-========================= */
+/* 固定順位行生成 */
 
 function createRows(){
 
@@ -283,9 +271,7 @@ function createRows(){
 
 }
 
-/* =========================
-描画
-========================= */
+/* 描画 */
 
 function render(){
 
@@ -394,9 +380,7 @@ function render(){
 
 }
 
-/* =========================
-再生
-========================= */
+/* 再生 */
 
 let current = 0;
 
@@ -429,9 +413,7 @@ function next(){
 
 }
 
-/* =========================
-データ取得
-========================= */
+/* データ取得 */
 
 async function loadData(){
 
