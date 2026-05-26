@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>わんも〜推し犬総選挙 推移</title>
+<title>わんも〜推し犬総選挙</title>
 
 <style>
 
@@ -23,8 +23,8 @@ body{
   width:1280px;
   height:720px;
   overflow:hidden;
-  background:#efd3a1;
   font-family:'PandaBakery',sans-serif;
+  background:#efd3a1;
 }
 
 #bg{
@@ -62,15 +62,6 @@ body{
   margin-bottom:38px;
 }
 
-.date{
-  position:absolute;
-  right:90px;
-  top:78px;
-  font-size:24px;
-  color:#8f7c6d;
-  letter-spacing:2px;
-}
-
 #chart{
   display:flex;
   flex-direction:column;
@@ -78,7 +69,6 @@ body{
 }
 
 .row{
-  position:relative;
   height:42px;
   display:flex;
   align-items:center;
@@ -119,7 +109,7 @@ body{
   opacity:.92;
 
   transition:
-    width .9s cubic-bezier(.22,1,.36,1);
+    width 1.2s cubic-bezier(.22,1,.36,1);
 }
 
 .score{
@@ -149,14 +139,10 @@ body{
   </div>
 
   <div class="sub">
-    RANKING TRANSITION
+    LIVE RANKING
   </div>
 
   <div class="line"></div>
-
-  <div class="date" id="date">
-    LOADING...
-  </div>
 
   <div id="chart">
 
@@ -173,8 +159,8 @@ body{
 const API_URL =
 "https://script.google.com/macros/s/AKfycby7mjB5m4pMi63DHtdYOgfEZaQ7TJyAi3mOfndk7WHXyWDsvHeqFFCfdHI6BvjQQoNz6g/exec";
 
-const chart = document.getElementById("chart");
-const dateEl = document.getElementById("date");
+const chart =
+document.getElementById("chart");
 
 const colors = {
 
@@ -223,192 +209,91 @@ function getColor(name){
 
 }
 
-let rawData = [];
-
-const scores = {};
-const dogElements = {};
-
-function createRow(name){
-
-  const row = document.createElement("div");
-
-  row.className = "row";
-
-  row.innerHTML = `
-
-    <div class="rank">0</div>
-
-    <div class="name">
-      ${name}
-    </div>
-
-    <div class="bar-area">
-      <div class="bar"></div>
-    </div>
-
-    <div class="score">0</div>
-
-  `;
-
-  row.querySelector(".bar").style.background =
-    getColor(name);
-
-  dogElements[name] = row;
-
-  chart.appendChild(row);
-
-}
-
-function render(){
-
-  const sorted = Object.entries(scores)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,10);
-
-  const max = sorted[0]?.[1] || 1;
-
-  sorted.forEach(([name,score],index)=>{
-
-    if(!dogElements[name]){
-      createRow(name);
-    }
-
-    const row = dogElements[name];
-
-    row.style.order = index;
-
-    const width = (score / max) * 100;
-
-    row.querySelector(".rank").textContent =
-      index + 1;
-
-    row.querySelector(".score").textContent =
-      score.toLocaleString();
-
-    row.querySelector(".bar").style.width =
-      width + "%";
-
-  });
-
-}
-
-let i = 0;
-
-function next(){
-
-  if(i >= rawData.length){
-    return;
-  }
-
-  const [date,name,vote] = rawData[i];
-
-  dateEl.textContent = date || "";
-
-  if(!scores[name]){
-    scores[name] = 0;
-  }
-
-  scores[name] += vote;
-
-  render();
-
-  i++;
-
-  setTimeout(next, 850);
-
-}
-
-async function loadData(){
+async function loadRanking(){
 
   try{
 
-    const res = await fetch(
-      API_URL + "?t=" + Date.now()
-    );
+    const res =
+      await fetch(
+        API_URL + "?t=" + Date.now()
+      );
 
-    const text = await res.text();
-
-    console.log(text);
-
-    const jsonStart = text.indexOf("[");
-
-    if(jsonStart === -1){
-
-      chart.innerHTML = `
-        <div class="loading">
-          JSONが見つかりません
-        </div>
-      `;
-
-      return;
-
-    }
-
-    const jsonText = text.slice(jsonStart);
-
-    const data = JSON.parse(jsonText);
-
-    console.log(data);
-
-    rawData = data.map(v => [
-
-      String(
-        v["日付"] ||
-        v["タイムスタンプ"] ||
-        ""
-      ).trim(),
-
-      String(
-        v["犬種"] ||
-        ""
-      ).trim(),
-
-      Number(
-        v["票数"] ||
-        v["票"] ||
-        0
-      )
-
-    ]).filter(v =>
-
-      v[1] &&
-      v[2] > 0
-
-    );
-
-    console.log(rawData);
-
-    if(rawData.length === 0){
-
-      chart.innerHTML = `
-        <div class="loading">
-          データ0件です
-        </div>
-      `;
-
-      return;
-
-    }
+    const data =
+      await res.json();
 
     chart.innerHTML = "";
 
-    next();
+    const max =
+      data[0]?.votes || 1;
+
+    data.forEach(dog => {
+
+      const row =
+        document.createElement("div");
+
+      row.className = "row";
+
+      const width =
+        (dog.votes / max) * 100;
+
+      row.innerHTML = `
+
+        <div class="rank">
+          ${dog.rank}
+        </div>
+
+        <div class="name">
+          ${dog.name}
+        </div>
+
+        <div class="bar-area">
+
+          <div
+            class="bar"
+            style="
+              background:${getColor(dog.name)};
+            ">
+          </div>
+
+        </div>
+
+        <div class="score">
+          ${Number(dog.votes).toLocaleString()}
+        </div>
+
+      `;
+
+      chart.appendChild(row);
+
+      requestAnimationFrame(() => {
+
+        row.querySelector(".bar")
+          .style.width =
+            width + "%";
+
+      });
+
+    });
 
   }catch(err){
 
     console.error(err);
 
     chart.innerHTML = `
+
       <div class="loading">
-        データ取得エラー
+        データ取得失敗
       </div>
+
     `;
 
   }
 
 }
 
-loadData();
+loadRanking();
+
+setInterval(loadRanking, 30000);
 
 </script>
 
