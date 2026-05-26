@@ -23,8 +23,8 @@ body{
   width:1280px;
   height:720px;
   overflow:hidden;
-  font-family:'PandaBakery',sans-serif;
   background:#efd3a1;
+  font-family:'PandaBakery',sans-serif;
 }
 
 #bg{
@@ -82,10 +82,6 @@ body{
   height:42px;
   display:flex;
   align-items:center;
-
-  transition:
-    transform .9s ease,
-    order .9s ease;
 }
 
 .rank{
@@ -306,7 +302,7 @@ function next(){
 
   const [date,name,vote] = rawData[i];
 
-  dateEl.textContent = date;
+  dateEl.textContent = date || "";
 
   if(!scores[name]){
     scores[name] = 0;
@@ -326,7 +322,9 @@ async function loadData(){
 
   try{
 
-    const res = await fetch(API_URL + "?t=" + Date.now());
+    const res = await fetch(
+      API_URL + "?t=" + Date.now()
+    );
 
     const text = await res.text();
 
@@ -338,7 +336,7 @@ async function loadData(){
 
       chart.innerHTML = `
         <div class="loading">
-          JSONデータが見つかりません
+          JSONが見つかりません
         </div>
       `;
 
@@ -350,22 +348,47 @@ async function loadData(){
 
     const data = JSON.parse(jsonText);
 
-    rawData = data
+    console.log(data);
 
-      .filter(v =>
+    rawData = data.map(v => [
 
-        v["犬種"] &&
-        Number(v["票数"]) > 0
+      String(
+        v["日付"] ||
+        v["タイムスタンプ"] ||
+        ""
+      ).trim(),
 
+      String(
+        v["犬種"] ||
+        ""
+      ).trim(),
+
+      Number(
+        v["票数"] ||
+        v["票"] ||
+        0
       )
 
-      .map(v => [
+    ]).filter(v =>
 
-        String(v["日付"]).trim(),
-        String(v["犬種"]).trim(),
-        Number(v["票数"])
+      v[1] &&
+      v[2] > 0
 
-      ]);
+    );
+
+    console.log(rawData);
+
+    if(rawData.length === 0){
+
+      chart.innerHTML = `
+        <div class="loading">
+          データ0件です
+        </div>
+      `;
+
+      return;
+
+    }
 
     chart.innerHTML = "";
 
@@ -377,7 +400,7 @@ async function loadData(){
 
     chart.innerHTML = `
       <div class="loading">
-        データ取得に失敗しました
+        データ取得エラー
       </div>
     `;
 
