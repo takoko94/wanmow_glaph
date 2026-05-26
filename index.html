@@ -139,6 +139,59 @@ body{
   color:#7c695c;
 }
 
+/* =========================
+START BUTTON
+========================= */
+
+#startButton{
+  position:absolute;
+
+  left:50%;
+  top:50%;
+
+  transform:translate(-50%,-50%);
+
+  width:260px;
+  height:88px;
+
+  border:none;
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8d27a,
+      #efb8c8
+    );
+
+  color:white;
+
+  font-family:'PandaBakery',sans-serif;
+  font-size:38px;
+  letter-spacing:4px;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.15);
+
+  transition:
+    transform .15s ease,
+    opacity .4s ease;
+}
+
+#startButton:hover{
+  transform:
+    translate(-50%,-50%)
+    scale(1.05);
+}
+
+#startButton:active{
+  transform:
+    translate(-50%,-50%)
+    scale(.97);
+}
+
 </style>
 </head>
 
@@ -161,12 +214,16 @@ body{
   <div id="chart">
 
     <div class="loading">
-      データ読み込み中...
+      STARTを押してください
     </div>
 
   </div>
 
 </div>
+
+<button id="startButton">
+  START
+</button>
 
 <script>
 
@@ -175,6 +232,9 @@ const API_URL =
 
 const chart =
 document.getElementById("chart");
+
+const startButton =
+document.getElementById("startButton");
 
 const scores = {};
 
@@ -228,7 +288,9 @@ function getColor(name){
 
 }
 
-/* 固定順位行生成 */
+/* =========================
+固定順位行生成
+========================= */
 
 function createRows(){
 
@@ -271,7 +333,9 @@ function createRows(){
 
 }
 
-/* 描画 */
+/* =========================
+描画
+========================= */
 
 function render(){
 
@@ -380,7 +444,9 @@ function render(){
 
 }
 
-/* 再生 */
+/* =========================
+再生
+========================= */
 
 let current = 0;
 
@@ -413,7 +479,9 @@ function next(){
 
 }
 
-/* データ取得 */
+/* =========================
+データ取得
+========================= */
 
 async function loadData(){
 
@@ -447,7 +515,26 @@ async function loadData(){
 
 }
 
-loadData();
+/* =========================
+START BUTTON
+========================= */
+
+startButton.addEventListener(
+  "click",
+  () => {
+
+    startButton.style.opacity = "0";
+
+    setTimeout(() => {
+
+      startButton.style.display = "none";
+
+      loadData();
+
+    }, 400);
+
+  }
+);
 
 </script>
 
