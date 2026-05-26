@@ -23,8 +23,8 @@ body{
   width:1280px;
   height:720px;
   overflow:hidden;
-  background:#efd3a1;
   font-family:'PandaBakery',sans-serif;
+  background:#efd3a1;
 }
 
 #bg{
@@ -193,11 +193,7 @@ const colors = {
   "キャバリア":"#d7b59d",
   "ビーグル":"#c9d58f",
   "コーギー":"#f0bb72",
-  "サモエド":"#dce8f2",
-  "ボーダーコリー":"#9bb9aa",
-  "ゴールデンレトリバー":"#e0ba74",
-  "パピヨン":"#d8b8f2",
-  "ミニチュアピンシャー":"#8f6c5b"
+  "サモエド":"#dce8f2"
 
 };
 
@@ -225,7 +221,9 @@ function getColor(name){
     hash += name.charCodeAt(i);
   }
 
-  return palette[hash % palette.length];
+  return palette[
+    hash % palette.length
+  ];
 
 }
 
@@ -328,13 +326,25 @@ async function loadData(){
 
   try{
 
-    const res = await fetch(API_URL);
+    const res = await fetch(API_URL + "?t=" + Date.now());
 
     const text = await res.text();
 
     console.log(text);
 
     const jsonStart = text.indexOf("[");
+
+    if(jsonStart === -1){
+
+      chart.innerHTML = `
+        <div class="loading">
+          JSONデータが見つかりません
+        </div>
+      `;
+
+      return;
+
+    }
 
     const jsonText = text.slice(jsonStart);
 
@@ -366,11 +376,9 @@ async function loadData(){
     console.error(err);
 
     chart.innerHTML = `
-
       <div class="loading">
-        データの読み込みに失敗しました
+        データ取得に失敗しました
       </div>
-
     `;
 
   }
