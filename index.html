@@ -42,7 +42,7 @@ body{
 }
 
 .title{
-  font-size:46px;
+  font-size:48px;
   color:#6d5b4e;
   margin-bottom:18px;
   letter-spacing:2px;
@@ -65,7 +65,7 @@ body{
 .date{
   position:absolute;
   right:90px;
-  top:76px;
+  top:78px;
   font-size:24px;
   color:#8f7c6d;
   letter-spacing:2px;
@@ -95,10 +95,12 @@ body{
 }
 
 .name{
-  width:280px;
+  width:320px;
   font-size:28px;
   color:#6d5b4e;
   white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .bar-area{
@@ -111,10 +113,11 @@ body{
   position:absolute;
   left:0;
   top:0;
-  height:100%;
-  border-radius:999px;
 
+  height:100%;
   width:0%;
+
+  border-radius:999px;
 
   opacity:.92;
 
@@ -123,11 +126,16 @@ body{
 }
 
 .score{
-  width:150px;
+  width:180px;
   text-align:right;
   font-size:28px;
   color:#6d5b4e;
   padding-left:18px;
+}
+
+.loading{
+  color:#7c695c;
+  font-size:26px;
 }
 
 </style>
@@ -150,66 +158,23 @@ body{
   <div class="line"></div>
 
   <div class="date" id="date">
-    5/10
+    LOADING...
   </div>
 
-  <div id="chart"></div>
+  <div id="chart">
+
+    <div class="loading">
+      データ読み込み中...
+    </div>
+
+  </div>
 
 </div>
 
 <script>
 
-const rawData = [
-
-["5/10","チワワ",30],
-["5/10","ポメラニアン",3],
-["5/10","ハスキー",5],
-["5/10","柴犬",3],
-["5/10","パグ",34],
-["5/10","パグ",100],
-["5/10","パグ",100],
-["5/10","ダックスフンド",50],
-
-["5/13","パグ",160],
-["5/13","シュナウザー",20],
-["5/13","柴犬",10],
-
-["5/15","柴犬",30],
-["5/15","ダックスフンド",100],
-["5/15","ダックスフンド",75],
-["5/15","ハスキー",6],
-
-["5/20","ハスキー",50],
-["5/20","ポメラニアン",400],
-["5/20","シュナウザー",100],
-["5/20","ハスキー",100],
-["5/20","マルトイプー",300],
-
-["5/21","ハスキー",200],
-["5/21","チワワ",200],
-["5/21","チワワ",300],
-
-["5/22","ハスキー",8],
-["5/22","プードル",8],
-
-["5/23","シュナウザー",500],
-["5/23","パグ",1000],
-
-["5/24","ハスキー",1000],
-["5/24","ポメラニアン",300],
-["5/24","ポメラニアン",300],
-["5/24","ポメラニアン",1000],
-["5/24","プードル",1200],
-["5/24","ダックスフンド",500],
-["5/24","ハスキー",500],
-["5/24","ポメラニアン",1334],
-["5/24","ハスキー",500],
-["5/24","ハスキー",500],
-["5/24","ポメラニアン",300],
-["5/24","ポメラニアン",300],
-["5/24","ハスキー",500]
-
-];
+const API_URL =
+"https://script.google.com/macros/s/AKfycby7mjB5m4pMi63DHtdYOgfEZaQ7TJyAi3mOfndk7WHXyWDsvHeqFFCfdHI6BvjQQoNz6g/exec";
 
 const colors = {
 
@@ -221,16 +186,50 @@ const colors = {
   "シュナウザー":"#b6a7d8",
   "チワワ":"#dfb0a5",
   "プードル":"#f2c6e8",
-  "マルトイプー":"#d8c0a7"
+  "マルトイプー":"#d8c0a7",
+  "キャバリア":"#d7b59d",
+  "ビーグル":"#c9d58f",
+  "コーギー":"#f0bb72",
+  "サモエド":"#dce8f2",
+  "ボーダーコリー":"#9bb9aa",
+  "ゴールデンレトリバー":"#e0ba74",
+  "パピヨン":"#d8b8f2",
+  "ミニチュアピンシャー":"#8f6c5b"
 
 };
-
-const scores = {};
 
 const chart = document.getElementById("chart");
 const dateEl = document.getElementById("date");
 
+let rawData = [];
+const scores = {};
 const dogElements = {};
+
+function getColor(name){
+
+  if(colors[name]){
+    return colors[name];
+  }
+
+  const palette = [
+    "#b7c9e2",
+    "#f2c4c4",
+    "#d9d0b4",
+    "#b6d7c9",
+    "#d8c1e8",
+    "#e8d0b6",
+    "#c4d9f2"
+  ];
+
+  let hash = 0;
+
+  for(let i = 0; i < name.length; i++){
+    hash += name.charCodeAt(i);
+  }
+
+  return palette[hash % palette.length];
+
+}
 
 function createRow(name){
 
@@ -255,7 +254,7 @@ function createRow(name){
   `;
 
   row.querySelector(".bar").style.background =
-    colors[name] || "#c8b9aa";
+    getColor(name);
 
   dogElements[name] = row;
 
@@ -318,13 +317,52 @@ function next(){
 
   i++;
 
-  setTimeout(next, 900);
+  setTimeout(next, 850);
 
 }
 
-render();
+async function loadData(){
 
-setTimeout(next,1000);
+  try{
+
+    const res = await fetch(API_URL);
+
+    const data = await res.json();
+
+    rawData = data
+      .filter(v =>
+        v["犬種"] &&
+        Number(v["票数"]) > 0
+      )
+      .map(v => [
+
+        String(v["日付"]).trim(),
+        String(v["犬種"]).trim(),
+        Number(v["票数"])
+
+      ]);
+
+    chart.innerHTML = "";
+
+    next();
+
+  }catch(err){
+
+    console.error(err);
+
+    chart.innerHTML = `
+
+      <div class="loading">
+        データの読み込みに失敗しました
+      </div>
+
+    `;
+
+  }
+
+}
+
+loadData();
 
 </script>
 
