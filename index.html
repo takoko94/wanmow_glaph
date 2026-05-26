@@ -95,9 +95,10 @@ body{
 }
 
 .name{
-  width:320px;
+  width:340px;
   font-size:28px;
   color:#6d5b4e;
+
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -114,8 +115,8 @@ body{
   left:0;
   top:0;
 
-  height:100%;
   width:0%;
+  height:100%;
 
   border-radius:999px;
 
@@ -126,7 +127,7 @@ body{
 }
 
 .score{
-  width:180px;
+  width:190px;
   text-align:right;
   font-size:28px;
   color:#6d5b4e;
@@ -134,8 +135,8 @@ body{
 }
 
 .loading{
-  color:#7c695c;
-  font-size:26px;
+  font-size:28px;
+  color:#7b6759;
 }
 
 </style>
@@ -176,6 +177,9 @@ body{
 const API_URL =
 "https://script.google.com/macros/s/AKfycby7mjB5m4pMi63DHtdYOgfEZaQ7TJyAi3mOfndk7WHXyWDsvHeqFFCfdHI6BvjQQoNz6g/exec";
 
+const chart = document.getElementById("chart");
+const dateEl = document.getElementById("date");
+
 const colors = {
 
   "ハスキー":"#94b7d4",
@@ -186,7 +190,6 @@ const colors = {
   "シュナウザー":"#b6a7d8",
   "チワワ":"#dfb0a5",
   "プードル":"#f2c6e8",
-  "マルトイプー":"#d8c0a7",
   "キャバリア":"#d7b59d",
   "ビーグル":"#c9d58f",
   "コーギー":"#f0bb72",
@@ -198,13 +201,6 @@ const colors = {
 
 };
 
-const chart = document.getElementById("chart");
-const dateEl = document.getElementById("date");
-
-let rawData = [];
-const scores = {};
-const dogElements = {};
-
 function getColor(name){
 
   if(colors[name]){
@@ -212,6 +208,7 @@ function getColor(name){
   }
 
   const palette = [
+
     "#b7c9e2",
     "#f2c4c4",
     "#d9d0b4",
@@ -219,6 +216,7 @@ function getColor(name){
     "#d8c1e8",
     "#e8d0b6",
     "#c4d9f2"
+
   ];
 
   let hash = 0;
@@ -230,6 +228,11 @@ function getColor(name){
   return palette[hash % palette.length];
 
 }
+
+let rawData = [];
+
+const scores = {};
+const dogElements = {};
 
 function createRow(name){
 
@@ -327,13 +330,25 @@ async function loadData(){
 
     const res = await fetch(API_URL);
 
-    const data = await res.json();
+    const text = await res.text();
+
+    console.log(text);
+
+    const jsonStart = text.indexOf("[");
+
+    const jsonText = text.slice(jsonStart);
+
+    const data = JSON.parse(jsonText);
 
     rawData = data
+
       .filter(v =>
+
         v["犬種"] &&
         Number(v["票数"]) > 0
+
       )
+
       .map(v => [
 
         String(v["日付"]).trim(),
