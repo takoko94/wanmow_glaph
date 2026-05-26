@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1280,height=720,user-scalable=no">
 
 <title>わんも〜推し犬総選挙</title>
 
@@ -19,74 +19,96 @@
   box-sizing:border-box;
 }
 
+html,
 body{
   width:1280px;
   height:720px;
   overflow:hidden;
+}
+
+body{
+  position:relative;
   font-family:'PandaBakery',sans-serif;
-  background:#efd3a1;
+  background:#f6e1ba;
 }
 
 #bg{
   position:absolute;
   inset:0;
-  width:100%;
-  height:100%;
+  width:1280px;
+  height:720px;
   object-fit:cover;
 }
 
 #wrap{
   position:absolute;
   inset:0;
-  padding:70px 90px;
+  padding:58px 78px;
 }
 
 .title{
-  font-size:48px;
+  font-size:50px;
   color:#6d5b4e;
-  margin-bottom:18px;
   letter-spacing:2px;
 }
 
 .sub{
+  margin-top:10px;
   font-size:18px;
   color:#9b8c7e;
-  margin-bottom:34px;
   letter-spacing:3px;
 }
 
 .line{
+  margin-top:28px;
   width:100%;
   height:1px;
   background:rgba(120,100,80,.16);
-  margin-bottom:38px;
+}
+
+.date{
+  position:absolute;
+  top:64px;
+  right:78px;
+  font-size:24px;
+  color:#8f7c6d;
 }
 
 #chart{
+  position:absolute;
+  left:78px;
+  top:185px;
+  width:1124px;
+
   display:flex;
   flex-direction:column;
-  gap:18px;
+  gap:14px;
 }
 
 .row{
   height:42px;
+
   display:flex;
   align-items:center;
+
+  transition:
+    transform .8s ease,
+    order .8s ease;
 }
 
 .rank{
   width:60px;
-  font-size:28px;
+  font-size:30px;
   color:#6d5b4e;
 }
 
 .name{
-  width:340px;
+  width:320px;
   font-size:28px;
   color:#6d5b4e;
 
-  white-space:nowrap;
   overflow:hidden;
+  white-space:nowrap;
   text-overflow:ellipsis;
 }
 
@@ -109,20 +131,23 @@ body{
   opacity:.92;
 
   transition:
-    width 1.2s cubic-bezier(.22,1,.36,1);
+    width .85s cubic-bezier(.22,1,.36,1);
 }
 
 .score{
-  width:190px;
+  width:170px;
+
   text-align:right;
+
   font-size:28px;
   color:#6d5b4e;
-  padding-left:18px;
+
+  padding-left:16px;
 }
 
 .loading{
   font-size:28px;
-  color:#7b6759;
+  color:#7c695c;
 }
 
 </style>
@@ -139,10 +164,14 @@ body{
   </div>
 
   <div class="sub">
-    LIVE RANKING
+    RANKING TRANSITION
   </div>
 
   <div class="line"></div>
+
+  <div class="date" id="date">
+    LOADING...
+  </div>
 
   <div id="chart">
 
@@ -161,6 +190,9 @@ const API_URL =
 
 const chart =
 document.getElementById("chart");
+
+const dateEl =
+document.getElementById("date");
 
 const colors = {
 
@@ -209,7 +241,124 @@ function getColor(name){
 
 }
 
-async function loadRanking(){
+const scores = {};
+const dogElements = {};
+
+let rawData = [];
+
+function createRow(name){
+
+  const row =
+    document.createElement("div");
+
+  row.className = "row";
+
+  row.innerHTML = `
+
+    <div class="rank">0</div>
+
+    <div class="name">
+      ${name}
+    </div>
+
+    <div class="bar-area">
+
+      <div class="bar"></div>
+
+    </div>
+
+    <div class="score">
+      0
+    </div>
+
+  `;
+
+  row.querySelector(".bar")
+    .style.background =
+      getColor(name);
+
+  dogElements[name] = row;
+
+  chart.appendChild(row);
+
+}
+
+function render(){
+
+  const sorted =
+    Object.entries(scores)
+
+    .sort((a,b)=>b[1]-a[1]);
+
+  const max =
+    sorted[0]?.[1] || 1;
+
+  sorted.forEach(([name,score],index)=>{
+
+    if(!dogElements[name]){
+      createRow(name);
+    }
+
+    const row =
+      dogElements[name];
+
+    row.style.order = index;
+
+    row.querySelector(".rank")
+      .textContent =
+        index + 1;
+
+    row.querySelector(".score")
+      .textContent =
+        score.toLocaleString();
+
+    const width =
+      (score / max) * 100;
+
+    row.querySelector(".bar")
+      .style.width =
+        width + "%";
+
+  });
+
+}
+
+let currentIndex = 0;
+
+function next(){
+
+  if(currentIndex >= rawData.length){
+    return;
+  }
+
+  const row =
+    rawData[currentIndex];
+
+  const dog =
+    row.name;
+
+  const votes =
+    Number(row.votes || 0);
+
+  if(!scores[dog]){
+    scores[dog] = 0;
+  }
+
+  scores[dog] += votes;
+
+  render();
+
+  dateEl.textContent =
+    "TOTAL ENTRIES : " +
+    (currentIndex + 1);
+
+  currentIndex++;
+
+  setTimeout(next, 260);
+
+}
+
+async function loadData(){
 
   try{
 
@@ -221,59 +370,29 @@ async function loadRanking(){
     const data =
       await res.json();
 
-    chart.innerHTML = "";
-
-    const max =
-      data[0]?.votes || 1;
+    rawData = [];
 
     data.forEach(dog => {
 
-      const row =
-        document.createElement("div");
+      const total =
+        Number(dog.votes || 0);
 
-      row.className = "row";
+      for(let i = 0; i < total; i++){
 
-      const width =
-        (dog.votes / max) * 100;
+        rawData.push({
 
-      row.innerHTML = `
+          name: dog.name,
+          votes: 1
 
-        <div class="rank">
-          ${dog.rank}
-        </div>
+        });
 
-        <div class="name">
-          ${dog.name}
-        </div>
-
-        <div class="bar-area">
-
-          <div
-            class="bar"
-            style="
-              background:${getColor(dog.name)};
-            ">
-          </div>
-
-        </div>
-
-        <div class="score">
-          ${Number(dog.votes).toLocaleString()}
-        </div>
-
-      `;
-
-      chart.appendChild(row);
-
-      requestAnimationFrame(() => {
-
-        row.querySelector(".bar")
-          .style.width =
-            width + "%";
-
-      });
+      }
 
     });
+
+    chart.innerHTML = "";
+
+    next();
 
   }catch(err){
 
@@ -291,9 +410,7 @@ async function loadRanking(){
 
 }
 
-loadRanking();
-
-setInterval(loadRanking, 30000);
+loadData();
 
 </script>
 
