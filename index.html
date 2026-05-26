@@ -328,7 +328,16 @@ function render(){
 
     let duration = 0.18;
 
-    if(diff >= 100){
+    if(diff >= 1000){
+      duration = 2.8;
+    }
+    else if(diff >= 500){
+      duration = 1.8;
+    }
+    else if(diff >= 250){
+      duration = 1.2;
+    }
+    else if(diff >= 100){
       duration = 0.85;
     }
     else if(diff >= 50){
