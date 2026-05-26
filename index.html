@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <meta name="viewport" content="width=1280,height=720,user-scalable=no">
 
 <title>わんも〜推し犬総選挙</title>
@@ -28,8 +28,8 @@ body{
 
 body{
   position:relative;
+  background:#f6dfb8;
   font-family:'PandaBakery',sans-serif;
-  background:#f6e1ba;
 }
 
 #bg{
@@ -68,8 +68,9 @@ body{
 
 .date{
   position:absolute;
-  top:64px;
   right:78px;
+  top:64px;
+
   font-size:24px;
   color:#8f7c6d;
 }
@@ -78,6 +79,7 @@ body{
   position:absolute;
   left:78px;
   top:185px;
+
   width:1124px;
 
   display:flex;
@@ -104,11 +106,12 @@ body{
 
 .name{
   width:320px;
+
   font-size:28px;
   color:#6d5b4e;
 
-  overflow:hidden;
   white-space:nowrap;
+  overflow:hidden;
   text-overflow:ellipsis;
 }
 
@@ -131,7 +134,7 @@ body{
   opacity:.92;
 
   transition:
-    width .85s cubic-bezier(.22,1,.36,1);
+    width .65s cubic-bezier(.22,1,.36,1);
 }
 
 .score{
@@ -164,7 +167,7 @@ body{
   </div>
 
   <div class="sub">
-    RANKING TRANSITION
+    LIVE TRANSITION
   </div>
 
   <div class="line"></div>
@@ -331,14 +334,14 @@ function next(){
     return;
   }
 
-  const row =
+  const item =
     rawData[currentIndex];
 
   const dog =
-    row.name;
+    item.name;
 
   const votes =
-    Number(row.votes || 0);
+    Number(item.votes || 0);
 
   if(!scores[dog]){
     scores[dog] = 0;
@@ -349,12 +352,15 @@ function next(){
   render();
 
   dateEl.textContent =
-    "TOTAL ENTRIES : " +
-    (currentIndex + 1);
+    item.user +
+    " → " +
+    dog +
+    " +" +
+    votes;
 
   currentIndex++;
 
-  setTimeout(next, 260);
+  setTimeout(next, 420);
 
 }
 
@@ -367,26 +373,20 @@ async function loadData(){
         API_URL + "?t=" + Date.now()
       );
 
-    const data =
+    const ranking =
       await res.json();
 
     rawData = [];
 
-    data.forEach(dog => {
+    ranking.forEach(dog => {
 
-      const total =
-        Number(dog.votes || 0);
+      rawData.push({
 
-      for(let i = 0; i < total; i++){
+        user:"",
+        name:dog.name,
+        votes:Number(dog.votes)
 
-        rawData.push({
-
-          name: dog.name,
-          votes: 1
-
-        });
-
-      }
+      });
 
     });
 
